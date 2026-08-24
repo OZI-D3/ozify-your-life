@@ -1,6 +1,15 @@
 <!doctype html>
 <html lang="en">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GNB2FQENDF"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GNB2FQENDF');
+</script>
+
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>OZI-D3 Poster Studio</title>
@@ -323,7 +332,7 @@
       <div class="small">Instagram cannot post directly from a website; this button prepares the caption and poster for sharing.</div>
     </div>
 
-    <div class="section">
+    <div class="section" style="display:none">
       <label>5. Analytics Setup</label>
       <input id="gaid" type="text" placeholder="Paste GA4 Measurement ID (e.g. G-XXXXXXXXXX)" />
       <div class="grid2" style="margin-top:8px">
@@ -342,7 +351,22 @@
     </div>
 
     <div class="section">
-      <label>6. Feedback</label>
+      <div class="hintbox">
+        <strong>Feedback:</strong> A star-rating prompt will appear after a download or share action.
+      </div>
+    </div>
+  </aside>
+
+  <main class="preview">
+    <canvas id="poster" width="1254" height="1254"></canvas>
+  </main>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modal-card">
+    <div id="feedbackStep">
+      <h3>Quick feedback</h3>
+      <p>How was your experience with the poster tool?</p>
       <div class="stars" id="stars">
         <div class="star" data-v="1">★</div>
         <div class="star" data-v="2">★</div>
@@ -358,23 +382,11 @@
       <div class="small">A thank-you message will pop up after submission.</div>
     </div>
 
-    <div class="section">
-      <div class="hintbox">
-        <strong>Tip:</strong> For reliable visitor analytics, use the saved GA4 ID above. For central feedback collection, you can later connect a Google Form, Google Apps Script, or another form endpoint.
-      </div>
+    <div id="thanksStep" style="display:none">
+      <h3>Thank you so much for your feedback.</h3>
+      <p>Your response has been recorded for campaign improvement.</p>
+      <button id="closeModal">Close</button>
     </div>
-  </aside>
-
-  <main class="preview">
-    <canvas id="poster" width="1254" height="1254"></canvas>
-  </main>
-</div>
-
-<div class="modal" id="modal">
-  <div class="modal-card">
-    <h3>Thank you so much for your feedback.</h3>
-    <p>Your response has been recorded for campaign improvement.</p>
-    <button id="closeModal">Close</button>
   </div>
 </div>
 
@@ -465,7 +477,7 @@ function draw() {
   ctx.textBaseline = 'middle';
 
   // Fit name
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = '#111111';
   let nFont = 36;
   ctx.font = `700 ${nFont}px Arial, Helvetica, sans-serif`;
   while (ctx.measureText(name).width > 290 && nFont > 22) {
@@ -486,9 +498,9 @@ function draw() {
 
 function fitPhoto() {
   state.x = PHOTO.x;
-  state.y = PHOTO.y;
+  state.y = PHOTO.y + (photoImg && photoImg.height > photoImg.width ? -Math.round(PHOTO.r * 0.04) : 0);
   state.rotation = 0;
-  state.scale = 1;
+  state.scale = 1.08; // slightly tighter fit inside the circular frame
   draw();
 }
 
@@ -573,6 +585,7 @@ async function downloadPoster() {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+  setTimeout(() => openModal('feedback'), 250);
 }
 
 document.getElementById('download').onclick = downloadPoster;
@@ -600,24 +613,27 @@ document.getElementById('whatsapp').onclick = () => {
   shareWithEvent('whatsapp');
   const msg = encodeURIComponent(shareText() + ' ' + pageUrl());
   openShare(`https://wa.me/?text=${msg}`);
+  setTimeout(() => openModal('feedback'), 250);
 };
 document.getElementById('facebook').onclick = () => {
   shareWithEvent('facebook');
   openShare(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl())}`);
+  setTimeout(() => openModal('feedback'), 250);
 };
 document.getElementById('linkedin').onclick = () => {
   shareWithEvent('linkedin');
   openShare(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl())}`);
+  setTimeout(() => openModal('feedback'), 250);
 };
 document.getElementById('xshare').onclick = () => {
   shareWithEvent('x');
   const txt = encodeURIComponent(shareText());
   openShare(`https://twitter.com/intent/tweet?text=${txt}&url=${encodeURIComponent(pageUrl())}`);
+  setTimeout(() => openModal('feedback'), 250);
 };
 document.getElementById('instagram').onclick = async () => {
   shareWithEvent('instagram');
   await downloadPoster();
-  alert('Instagram does not support direct web posting. The poster has been downloaded so you can share it in Instagram manually.');
 };
 document.getElementById('copyCaption').onclick = async () => {
   const txt = `${shareText()} ${pageUrl()}`;
@@ -654,10 +670,25 @@ stars.forEach(s => s.addEventListener('click', () => {
 }));
 paintStars(rating);
 
-function openModal() {
-  document.getElementById('modal').classList.add('show');
+function openModal(mode = 'feedback') {
+  const modal = document.getElementById('modal');
+  const feedbackStep = document.getElementById('feedbackStep');
+  const thanksStep = document.getElementById('thanksStep');
+  modal.classList.add('show');
+  if (feedbackStep && thanksStep) {
+    feedbackStep.style.display = mode === 'thanks' ? 'none' : 'block';
+    thanksStep.style.display = mode === 'thanks' ? 'block' : 'none';
+  }
 }
-document.getElementById('closeModal').onclick = () => document.getElementById('modal').classList.remove('show');
+document.getElementById('closeModal').onclick = () => {
+  document.getElementById('modal').classList.remove('show');
+  const feedbackStep = document.getElementById('feedbackStep');
+  const thanksStep = document.getElementById('thanksStep');
+  if (feedbackStep && thanksStep) {
+    feedbackStep.style.display = 'block';
+    thanksStep.style.display = 'none';
+  }
+};
 
 document.getElementById('submitFeedback').onclick = () => {
   const text = document.getElementById('feedback').value.trim();
@@ -677,7 +708,7 @@ document.getElementById('submitFeedback').onclick = () => {
   localStorage.setItem('feedback_clicks', String(feedbackClicks));
   document.getElementById('feedbackCount').textContent = feedbackClicks;
   track('submit_feedback', { rating });
-  openModal();
+  openModal('thanks');
   document.getElementById('feedback').value = '';
   rating = 0;
   paintStars(0);

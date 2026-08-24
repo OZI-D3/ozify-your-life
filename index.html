@@ -404,8 +404,8 @@ const W = canvas.width, H = canvas.height;
 
 const PHOTO = { x: 909, y: 579, r: 238 };
 const NAME_BOX = { x: 806, y: 842, w: 340, h: 140 };
-const NAME_CENTER = { x: 973, y: 903 };
-const DESIGNATION_CENTER = { x: 973, y: 945 };
+const NAME_CENTER = { x: 973, y: 925 };
+const DESIGNATION_CENTER = { x: 973, y: 966 };
 
 let photoImg = null;
 let state = { x: PHOTO.x, y: PHOTO.y, scale: 1, rotation: 0 };
@@ -484,7 +484,7 @@ function draw() {
     nFont -= 1;
     ctx.font = `700 ${nFont}px Arial, Helvetica, sans-serif`;
   }
-  ctx.fillText(name, NAME_CENTER.x, NAME_CENTER.y - 4);
+  ctx.fillText(name, NAME_CENTER.x, NAME_CENTER.y - 8);
 
   let dFont = 22;
   ctx.font = `500 ${dFont}px Arial, Helvetica, sans-serif`;
@@ -492,7 +492,7 @@ function draw() {
     dFont -= 1;
     ctx.font = `500 ${dFont}px Arial, Helvetica, sans-serif`;
   }
-  ctx.fillText(designation, DESIGNATION_CENTER.x, DESIGNATION_CENTER.y + 2);
+  ctx.fillText(designation, DESIGNATION_CENTER.x, DESIGNATION_CENTER.y + 4);
   ctx.restore();
 }
 

@@ -1,1 +1,0 @@
-# ozify-your-life
